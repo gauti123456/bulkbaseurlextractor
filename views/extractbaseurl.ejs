@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%=title%></title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">Bulk Base URL Extractor From Subdomains</h1>
+      <form id="form">
+        <div class="form-group">
+          <label for="domain">Enter Domains or Subdomains URL: (One Per Line)</label>
+          <textarea
+            class="form-control"
+            rows="10"
+            cols="20"
+            id="domains"
+            placeholder="Domain names"
+            required
+          ></textarea>
+        </div>
+         <label class="radio-inline"
+          ><input type="radio" value="without" name="format" checked />(without
+          http,https and www)</label
+        >
+        <label class="radio-inline"
+          ><input type="radio" value="with" name="format" />(with
+          http,https and www)</label
+        >
+        <br><br>
+        <div class="form-group">
+          <button id="button" class="btn btn-block btn-danger">
+            Extract Base URL's
+          </button>
+        </div>
+      </form>
+      <div>
+        <div class="form-group">
+          <label for="output">Output: (Base URLs)</label>
+          <textarea
+            class="form-control"
+            name=""
+            id="result"
+            cols="30"
+            rows="10"
+            placeholder="Output"
+          ></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <button id="copy" onclick="copytoclipboard()" class="btn btn-primary btn-block">
+          Copy to Clipboard
+        </button>
+      </div>
+<br>
+    </div>
+  </body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/psl/1.8.0/psl.min.js"></script>
+  <script>
+    var domains, format;
+    $("#form").submit(function (e) {
+      e.preventDefault();
+
+      $("#result").empty();
+
+      $("#button").text("Extracting Base URL Please Wait");
+
+      $("#button").prop("disabled", "true");
+
+      format = $("input[name='format']:checked").val();
+
+      console.log(format);
+
+      domains = $("#domains").val().split("\n");
+
+      console.log(domains);
+
+      domains.forEach((domain) => {
+        var domain;
+        console.log(domain);
+
+        if (format == "without") {
+          domain = domain
+            .replace(/^(?:https?:\/\/)?(?:www\.)?/i, "")
+            .split("/")[0];
+          $.ajax({
+            method: "POST",
+            url: "/getbaseurlwithouthttp",
+            data: { domain: domain },
+            success: function (data) {
+              console.log(data.baseurl);
+
+              $("#button").text("Extract Base URL's");
+
+              document.getElementById("button").disabled = false;
+
+              $("#result").append(`${data.baseurl}\n`);
+            },
+          });
+        } else {
+          var temp = document.createElement("a");
+          temp.href = domain;
+          $("#result").append(`${temp.origin}\n`);
+
+          $("#button").text("Extract Base URL's");
+
+          document.getElementById("button").disabled = false;
+        }
+      });
+    });
+  </script>
+  <script>
+
+    function copytoclipboard(){
+        var $temp = $("#result");
+  var brRegex = /<br\s*[\/]?>/gi;
+
+  $temp.val($($temp).html().replace(brRegex, "\r\n")).select();
+  document.execCommand("copy");
+  
+    Swal.fire(
+      'Good job!',
+      'Base URLs Successfully Copied',
+      'success'
+    )
+    }
+    
+    </script>    
+</html>
